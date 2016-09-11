@@ -1,11 +1,12 @@
 EXTRA_CFLAGS += $(USER_EXTRA_CFLAGS)
 EXTRA_CFLAGS += -O1
 #EXTRA_CFLAGS += -O3
-#EXTRA_CFLAGS += -Wall
+EXTRA_CFLAGS += -Wall
 #EXTRA_CFLAGS += -Wextra
 #EXTRA_CFLAGS += -Werror
 #EXTRA_CFLAGS += -pedantic
 #EXTRA_CFLAGS += -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes
+EXTRA_CFLAGS += -Werror=incompatible-pointer-types
 
 EXTRA_CFLAGS += -Wno-unused-variable
 EXTRA_CFLAGS += -Wno-unused-value
@@ -14,7 +15,7 @@ EXTRA_CFLAGS += -Wno-unused-parameter
 EXTRA_CFLAGS += -Wno-unused-function
 EXTRA_CFLAGS += -Wno-unused
 #EXTRA_CFLAGS += -Wno-uninitialized
-#EXTRA_CFLAGS += -Wno-error=date-time	# Fix compile error on gcc 4.9 and later
+EXTRA_CFLAGS += -Wno-error=date-time	# Fix compile error on gcc 4.9 and later
 
 EXTRA_CFLAGS += -I$(src)/include
 EXTRA_CFLAGS += -I$(src)/hal/phydm
@@ -61,7 +62,7 @@ CONFIG_REDUCE_TX_CPU_LOADING = n
 CONFIG_BR_EXT = y
 CONFIG_ANTENNA_DIVERSITY = n
 CONFIG_TDLS = n
-CONFIG_WIFI_MONITOR = n
+CONFIG_WIFI_MONITOR = y
 ######################## Wake On Lan ##########################
 CONFIG_WOWLAN = n
 CONFIG_GPIO_WAKEUP = n
@@ -73,7 +74,8 @@ CONFIG_AP_WOWLAN = n
 ######### Notify SDIO Host Keep Power During Syspend ##########
 CONFIG_RTW_SDIO_PM_KEEP_POWER = y
 ###################### Platform Related #######################
-CONFIG_PLATFORM_I386_PC = y
+CONFIG_PLATFORM_GENERIC = y
+CONFIG_PLATFORM_I386_PC = n
 CONFIG_PLATFORM_ANDROID_X86 = n
 CONFIG_PLATFORM_ANDROID_INTEL_X86 = n
 CONFIG_PLATFORM_JB_X86 = n
@@ -887,6 +889,18 @@ EXTRA_CFLAGS += -DCONFIG_WIFI_MONITOR
 endif
 
 EXTRA_CFLAGS += -DDM_ODM_SUPPORT_TYPE=0x04
+
+ifeq ($(CONFIG_PLATFORM_GENERIC), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.*/arm/)
+ARCH ?= $(SUBARCH)
+CROSS_COMPILE ?=
+KVER  := $(shell uname -r)
+KSRC := /lib/modules/$(KVER)/build
+MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
+INSTALL_PREFIX :=
+endif
 
 ifeq ($(CONFIG_PLATFORM_I386_PC), y)
 EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
