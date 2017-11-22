@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
- *                                        
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
  * published by the Free Software Foundation.
@@ -18,9 +18,9 @@
  *
  ******************************************************************************/
 
-//============================================================
-// include files
-//============================================================
+/* ************************************************************
+ * include files
+ * ************************************************************ */
 
 #include "mp_precomp.h"
 
@@ -28,51 +28,69 @@
 
 #if (RTL8821A_SUPPORT == 1)
 
-VOID
+void
 phydm_set_ext_band_switch_8821A(
-	IN		PVOID		pDM_VOID,
-	IN		u4Byte		band
-	)
+	void		*p_dm_void,
+	u32		band
+)
 {
-	PDM_ODM_T		pDM_Odm = (PDM_ODM_T)pDM_VOID;
-	
+	struct PHY_DM_STRUCT		*p_dm_odm = (struct PHY_DM_STRUCT *)p_dm_void;
+
 	/*Output Pin Settings*/
-	ODM_SetMACReg(pDM_Odm, 0x4C, BIT23, 0); /*select DPDT_P and DPDT_N as output pin*/
-	ODM_SetMACReg(pDM_Odm, 0x4C, BIT24, 1); /*by WLAN control*/
-	
-	ODM_SetBBReg(pDM_Odm, 0xCB4, 0xF, 7); /*DPDT_P = 1b'0*/
-	ODM_SetBBReg(pDM_Odm, 0xCB4, 0xF0, 7); /*DPDT_N = 1b'0*/
+	odm_set_mac_reg(p_dm_odm, 0x4C, BIT(23), 0); /*select DPDT_P and DPDT_N as output pin*/
+	odm_set_mac_reg(p_dm_odm, 0x4C, BIT(24), 1); /*by WLAN control*/
+
+	odm_set_bb_reg(p_dm_odm, 0xCB4, 0xF, 7); /*DPDT_P = 1b'0*/
+	odm_set_bb_reg(p_dm_odm, 0xCB4, 0xF0, 7); /*DPDT_N = 1b'0*/
 
 	if (band == ODM_BAND_2_4G) {
-		ODM_SetBBReg(pDM_Odm, 0xCB4, (BIT29|BIT28), 1);
-		ODM_RT_TRACE(pDM_Odm, ODM_COMP_ANT_DIV, ODM_DBG_LOUD, ("***8821A set band switch = 2b'01\n"));
+		odm_set_bb_reg(p_dm_odm, 0xCB4, (BIT(29) | BIT(28)), 1);
+		ODM_RT_TRACE(p_dm_odm, ODM_COMP_ANT_DIV, ODM_DBG_LOUD, ("***8821A set band switch = 2b'01\n"));
 	} else {
-		ODM_SetBBReg(pDM_Odm, 0xCB4, BIT29|BIT28, 2);
-		ODM_RT_TRACE(pDM_Odm, ODM_COMP_ANT_DIV, ODM_DBG_LOUD, ("***8821A set band switch = 2b'10\n"));
+		odm_set_bb_reg(p_dm_odm, 0xCB4, BIT(29) | BIT(28), 2);
+		ODM_RT_TRACE(p_dm_odm, ODM_COMP_ANT_DIV, ODM_DBG_LOUD, ("***8821A set band switch = 2b'10\n"));
 	}
 }
 
-VOID
-odm_DynamicTryStateAgg_8821A(
-	IN		PDM_ODM_T		pDM_Odm
-	)
+
+void
+odm_dynamic_try_state_agg_8821a(
+	struct PHY_DM_STRUCT		*p_dm_odm
+)
 {
-	if((pDM_Odm->SupportICType == ODM_RTL8821) && (pDM_Odm->SupportInterface == ODM_ITRF_USB))
-	{
-		if(pDM_Odm->RSSI_Min > 25)
-			ODM_Write1Byte(pDM_Odm, 0x4CF, 0x02);
-		else if(pDM_Odm->RSSI_Min < 20)
-			ODM_Write1Byte(pDM_Odm, 0x4CF, 0x00);
+	if ((p_dm_odm->support_ic_type & ODM_RTL8821) && (p_dm_odm->support_interface == ODM_ITRF_USB)) {
+		if (p_dm_odm->rssi_min > 25)
+			odm_write_1byte(p_dm_odm, 0x4CF, 0x02);
+		else if (p_dm_odm->rssi_min < 20)
+			odm_write_1byte(p_dm_odm, 0x4CF, 0x00);
 	}
 }
 
-VOID
-odm_HWSetting_8821A(
-	IN		PDM_ODM_T		pDM_Odm
-	)
+void
+odm_dynamic_packet_detection_th_8821a(
+	struct PHY_DM_STRUCT		*p_dm_odm
+)
 {
-	odm_DynamicTryStateAgg_8821A(pDM_Odm);
+	if (p_dm_odm->support_ic_type & ODM_RTL8821) {
+		if (p_dm_odm->rssi_min <= 25) {
+			/*odm_set_bb_reg(p_dm_odm, REG_PWED_TH_JAGUAR, MASKDWORD, 0x2aaaf1a8);*/
+			odm_set_bb_reg(p_dm_odm, REG_PWED_TH_JAGUAR, 0x1ff0, 0x11a);
+			odm_set_bb_reg(p_dm_odm, REG_BW_INDICATION_JAGUAR, BIT(26), 1);
+		} else if (p_dm_odm->rssi_min >= 30) {
+			/*odm_set_bb_reg(p_dm_odm, REG_PWED_TH_JAGUAR, MASKDWORD, 0x2aaaeec8);*/
+			odm_set_bb_reg(p_dm_odm, REG_PWED_TH_JAGUAR, 0x1ff0, 0xec);
+			odm_set_bb_reg(p_dm_odm, REG_BW_INDICATION_JAGUAR, BIT(26), 0);
+		}
+	}
 }
 
-#endif //#if (RTL8821A_SUPPORT == 1)
+void
+odm_hw_setting_8821a(
+	struct PHY_DM_STRUCT		*p_dm_odm
+)
+{
+	odm_dynamic_try_state_agg_8821a(p_dm_odm);
+	odm_dynamic_packet_detection_th_8821a(p_dm_odm);
+}
 
+#endif /* #if (RTL8821A_SUPPORT == 1) */
