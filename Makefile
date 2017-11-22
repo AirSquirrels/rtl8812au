@@ -1,3 +1,4 @@
+ARCH=arm64
 EXTRA_CFLAGS += $(USER_EXTRA_CFLAGS)
 EXTRA_CFLAGS += -O1
 #EXTRA_CFLAGS += -O3
@@ -1910,4 +1911,4 @@ clean:
 	rm -fr .tmp_versions
 endif
 
-:q
+:q
