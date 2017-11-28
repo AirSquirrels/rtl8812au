@@ -318,7 +318,7 @@ static void _rtw_reg_apply_flags(struct wiphy *wiphy)
 	u32 freq;
 
 	/* all channels disable */
-	for (i = 0; i < NUM_NL80211_BANDS; i++) {
+	for (i = 0; i < IEEE80211_NUM_BANDS; i++) {
 		sband = wiphy->bands[i];
 
 		if (sband) {
@@ -366,7 +366,7 @@ static void _rtw_reg_apply_flags(struct wiphy *wiphy)
 	u16 channel;
 	u32 freq;
 
-	for (i = 0; i < NL80211_NUM_BANDS; i++) {
+	for (i = 0; i < IEEE80211_NUM_BANDS; i++) {
 		sband = wiphy->bands[i];
 
 		if (sband)
