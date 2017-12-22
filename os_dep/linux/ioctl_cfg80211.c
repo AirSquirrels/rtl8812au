@@ -2319,7 +2319,6 @@ static int cfg80211_rtw_scan(struct wiphy *wiphy
 	if (adapter_wdev_data(padapter)->block_scan == _TRUE) {
 		RTW_INFO(FUNC_ADPT_FMT" wdev_priv.block_scan is set\n", FUNC_ADPT_ARG(padapter));
 		need_indicate_scan_done = _TRUE;
-                aborted = TRUE;
 		goto check_need_indicate_scan_done;
 	}
 
@@ -2327,7 +2326,6 @@ static int cfg80211_rtw_scan(struct wiphy *wiphy
 	ps_denied = _TRUE;
 	if (_FAIL == rtw_pwr_wakeup(padapter)) {
 		need_indicate_scan_done = _TRUE;
-                aborted = TRUE;
 		goto check_need_indicate_scan_done;
 	}
 
@@ -2363,7 +2361,6 @@ static int cfg80211_rtw_scan(struct wiphy *wiphy
 	if (rtw_is_scan_deny(padapter)) {
 		RTW_INFO(FUNC_ADPT_FMT	": scan deny\n", FUNC_ADPT_ARG(padapter));
 		need_indicate_scan_done = _TRUE;
-                aborted=TRUE;
 		goto check_need_indicate_scan_done;
 	}
 
@@ -2381,7 +2378,6 @@ static int cfg80211_rtw_scan(struct wiphy *wiphy
 				RTW_INFO("AP mode process WPS\n");
 
 			need_indicate_scan_done = _TRUE;
-                        aborted = TRUE;
 			goto check_need_indicate_scan_done;
 		}
 	}
@@ -2389,19 +2385,16 @@ static int cfg80211_rtw_scan(struct wiphy *wiphy
 	if (check_fwstate(pmlmepriv, _FW_UNDER_SURVEY) == _TRUE) {
 		RTW_INFO("%s, fwstate=0x%x\n", __func__, pmlmepriv->fw_state);
 		need_indicate_scan_done = _TRUE;
-                aborted=TRUE;
 		goto check_need_indicate_scan_done;
 	} else if (check_fwstate(pmlmepriv, _FW_UNDER_LINKING) == _TRUE) {
 		RTW_INFO("%s, fwstate=0x%x\n", __func__, pmlmepriv->fw_state);
 		ret = -EBUSY;
-                aborted=TRUE;
 		goto check_need_indicate_scan_done;
 	}
 
 #ifdef CONFIG_CONCURRENT_MODE
 	if (rtw_mi_buddy_check_fwstate(padapter, _FW_UNDER_LINKING | WIFI_UNDER_WPS)) {
 		RTW_INFO("%s exit due to buddy_intf's mlme state under linking or wps\n", __func__);
-                aborted=TRUE;
 		need_indicate_scan_done = _TRUE;
 		goto check_need_indicate_scan_done;
 
@@ -2409,7 +2402,6 @@ static int cfg80211_rtw_scan(struct wiphy *wiphy
 		bool scan_via_buddy = rtw_cfg80211_scan_via_buddy(padapter, request);
 
 		if (scan_via_buddy == _FALSE)
-                        aborted=TRUE; 
 			need_indicate_scan_done = _TRUE;
 
 		goto check_need_indicate_scan_done;
@@ -2418,7 +2410,6 @@ static int cfg80211_rtw_scan(struct wiphy *wiphy
 
 	/* busy traffic check*/
 	if (rtw_mi_busy_traffic_check(padapter, _TRUE)) {
-                aborted=TRUE;
 		need_indicate_scan_done = _TRUE;
 		goto check_need_indicate_scan_done;
 	}
@@ -2489,7 +2480,7 @@ check_need_indicate_scan_done:
                         struct cfg80211_scan_info info = { .aborted = aborted };
                         cfg80211_scan_done(request, &info);
 #else
-                        cfg80211_scan_done(request, aborted);
+                        cfg80211_scan_done(request, 0);
 #endif
 	}
 
