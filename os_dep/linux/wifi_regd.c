@@ -151,7 +151,11 @@ static void _rtw_reg_apply_beaconing_flags(struct wiphy *wiphy,
 	u32 bandwidth = 0;
 	int r;
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0))
+	for (band = 0; band < IEE80211_NUM_BANDS; band++) {
+#else
 	for (band = 0; band < NUM_NL80211_BANDS; band++) {
+#endif
 
 		if (!wiphy->bands[band])
 			continue;
@@ -318,7 +322,11 @@ static void _rtw_reg_apply_flags(struct wiphy *wiphy)
 	u32 freq;
 
 	/* all channels disable */
-	for (i = 0; i < IEEE80211_NUM_BANDS; i++) {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0))
+	for (i = 0; i < IEE80211_NUM_BANDS; i++) {
+#else
+	for (i = 0; i < NUM_NL80211_BANDS; i++) {
+#endif
 		sband = wiphy->bands[i];
 
 		if (sband) {
@@ -366,7 +374,7 @@ static void _rtw_reg_apply_flags(struct wiphy *wiphy)
 	u16 channel;
 	u32 freq;
 
-	for (i = 0; i < IEEE80211_NUM_BANDS; i++) {
+	for (i = 0; i < NUM_NL80211_BANDS; i++) {
 		sband = wiphy->bands[i];
 
 		if (sband)
