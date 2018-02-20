@@ -323,7 +323,7 @@ static void _rtw_reg_apply_flags(struct wiphy *wiphy)
 
 	/* all channels disable */
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0))
-	for (i = 0; i < IEE80211_NUM_BANDS; i++) {
+	for (i = 0; i < IEEE80211_NUM_BANDS; i++) {
 #else
 	for (i = 0; i < NUM_NL80211_BANDS; i++) {
 #endif
